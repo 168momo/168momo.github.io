@@ -1,0 +1,46 @@
+@import url('https://fonts.googleapis.com/css2?family=Cherry+Swash&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sawarabi+Gothic&display=swap');
+body {
+	background-color: #FCFCFC;
+	font-family: "Montserrat","Sawarabi Gothic", "Helvetica Neue", "Arial", "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Meiryo", "sans-serif";
+	text-align:center;
+	color:#423D39;
+	background-color: #EBEBEB;
+}
+
+h1{
+	margin-top:40px;
+}
+
+button{
+	margin:20px;
+	padding:10px;
+	padding-right:15px;
+	padding-left:15px;
+	border-radius:15px;
+}
+
+#question {
+	width:fit-content;
+	display:block;
+	border-radius: 10px;
+	background-color:#97DE9B;
+	border-radius:20px;
+	margin-top:50px;
+	margin-right: 30%;
+  margin-left: auto;
+	padding:8px 20px 8px 20px;
+}
+
+#reply {
+	width:fit-content;
+	display:block;
+	border-radius: 10px;
+	background-color:white;
+	border-radius:20px;
+	margin-right: auto;
+  margin-left: 30%;
+	padding:5px;
+	padding:8px 20px 8px 20px;
+}
