@@ -1,17 +1,21 @@
 //追加した機能：部分一致で判別できる、時刻を答える、二度目だと返答が変わる
 let date = new Date();
+
 var response = {
     "誰":"誰だと思う？",
     "何歳":"失礼だなあ",
     "元気":"元気だよ",
-		"こんにちは":"こんにちは",
-		"おはよう":"おはようー",
-    "好きな食べ物":"教えなーい",
-		"さようなら":"じゃあねー",
-		"よろしく":"ども",
-		"初めまして":"はじめまして",
-		"何時":date.getHours() + "時"　+ date.getMinutes() + "分だよ",
-		"何分":date.getMinutes() + "分だよ"
+	"こんにちは":"こんにちは",
+	"おはよう":"おはようー",
+    "好き,食べ物":"駄菓子かな",
+	"好き,飲み物":"水道水かな",
+	"さようなら":"じゃあねー",
+	"よろしく":"どうも",
+	"初めまして":"はじめまして",
+	"何時":date.getHours() + "時"　+ date.getMinutes() + "分だよ",
+	"何分":date.getMinutes() + "分だよ",
+	"和歌山,天気": ["これ見たらわかるでしょ", "https://tenki.jp/forecast/6/33/6510/30201/10days.html"],
+	"大阪,天気": ["大阪府民じゃないんだけど。これでも見といて", "https://tenki.jp/forecast/6/30/"],
 };
     
 
@@ -43,58 +47,74 @@ let output = ''; // 出力
 // 認識結果が出力されたときのイベントハンドラ
 asr.onresult = function(event){
     let transcript = event.results[event.resultIndex][0].transcript; // 結果文字列
+	tts.text = transcript;
+	let newText = tts.text.replace(/\r?\n/g,'').replace(/\0/g,''); 
+	let textbox_element = document.getElementById('resultOutput');
+	let new_you = document.createElement('p');//あなたの質問
+	let new_reply = document.createElement('p');//返答
+	new_you.id = "question";
+	new_reply.id = "reply"; 
+	new_you.textContent = newText;
 
     let output_not_final = '';
     if (event.results[event.resultIndex].isFinal) { // 結果が確定（Final）のとき
 	    asr.abort(); // 音声認識を停止
 			
-	    tts.text = transcript;
-			let newText = tts.text.replace(/\r?\n/g,'').replace(/\0/g,''); 
-			let textbox_element = document.getElementById('resultOutput');
-			let new_you = document.createElement('p');//あなたの質問
-			let new_reply = document.createElement('p');//返答
-			new_you.id = "question";
-			new_reply.id = "reply"; 
-			new_you.textContent = newText;
+	    let transcript = event.results[event.resultIndex][0].transcript; // 結果文字列
+
+		let output_not_final = '';
+		if (event.results[event.resultIndex].isFinal) { // 結果が確定（Final）のとき
+			asr.abort(); // 音声認識を停止
+			let ret = response[transcript];
+
+			let answer;
+			let webpage;
 			
-			tts.text = response[newText];
-			if(tts.text == 'undefined'){
-				tts.text = "ごめん、なんて？";
+			if(typeof ret == 'undefined'){
+				answer = "ごめん、なんて？";
+			}else{
+				answer = ret[0];
+				webpage = ret[1];
 			}
-			
-			for (key in response){//部分一致検索
-				if(newText.match(key) != null){
-					tts.text = response[newText.match(key)[0]];
-					//二度目以降の場合分け
-					if(key == "こんにちは"){
-						delete response["こんにちは"];
-						response["こんにちは"] = "またぁ？";
-					}
-					if(key == "さようなら"){
-						delete response["さようなら"];
-						response["さようなら"] = "はやく帰ってー";
-					}
-					if(key == "初めまして"){
-						delete response["初めまして"];
-						response["初めまして"] = "はじめてじゃないよね？";
-					}
+
+			let keys = Object.keys(response);
+			keys.forEach(function(key) {
+				let flag = true;
+				key.split(',').forEach(function(word) {
+					let pattern = new RegExp(word);
+					let flag_test = pattern.test(transcript);
+					flag = flag && flag_test;
+				});
+				if(flag){
+					answerAll = response[key];
+					answer = answerAll[0]
+					webpage = answerAll[1]
+					console.log(key + " : " + answer);
 				}
-			}
+			});
+		
+			output += transcript + ' => ' + answer + '<br>';
+				
+			tts.text = answer;
 			
-			new_reply.textContent = tts.text;
+			new_reply.textContent = answer;
 			textbox_element.appendChild(new_you);
 			textbox_element.appendChild(new_reply);
+			// 再生が終了（end）ときのイベントハンドラ（終了したときに実行される）
+			tts.onend = function(event){
+				if(typeof webpage != 'undefined'){
+					location.href = webpage; // ページを移動
+				}   
+				asr.start(); // 音声認識を再開 
+			}
 			
 			speechSynthesis.speak(tts); // 再生
+				
 			
-	    // 再生が終了（end）ときのイベントハンドラ（終了したときに実行される）
-	    tts.onend = function(event){
-	        asr.start(); // 音声認識を再開
-	    }
-			
-    } else { // 結果がまだ未確定のとき
-        output_not_final = '<span style="color:#ddd;">' + transcript + '</span>';
-    }
+		} else { // 結果がまだ未確定のとき
+			output_not_final = '<span style="color:#ddd;">' + transcript + '</span>';
+		}
+	}
 }
 
 // 開始ボタンのイベントハンドラ
