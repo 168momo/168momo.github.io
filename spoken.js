@@ -2,20 +2,20 @@
 let date = new Date();
 
 var response = {
-    "誰":"誰だと思う？",
-    "何歳":"失礼だなあ",
-    "元気":"元気だよ",
-	"こんにちは":"こんにちは",
-	"おはよう":"おはようー",
-    "好き,食べ物":"駄菓子かな",
-	"好き,飲み物":"水道水かな",
-	"さようなら":"じゃあねー",
-	"よろしく":"どうも",
-	"初めまして":"はじめまして",
-	"何時":date.getHours() + "時"　+ date.getMinutes() + "分だよ",
-	"何分":date.getMinutes() + "分だよ",
+    "誰":["誰だと思う？","undefined"],
+    "何歳":["失礼だなあ","undefined"],
+    "元気":["元気だよ","undefined"],
+	"こんにちは":["こんにちは","undefined"],
+	"おはよう":["おはようー","undefined"],
+    "好き,食べ物":["駄菓子かな","undefined"],
+	"好き,飲み物":["水道水かな","undefined"],
+	"さようなら":["じゃあねー","undefined"],
+	"よろしく":["どうも","undefined"],
+	"初めまして":["はじめまして","undefined"],
+	"何時":[date.getHours() + "時"　+ date.getMinutes() + "分だよ","undefined"],
+	"何分":[date.getMinutes() + "分だよ","undefined"],
 	"和歌山,天気": ["これ見たらわかるでしょ", "https://tenki.jp/forecast/6/33/6510/30201/10days.html"],
-	"大阪,天気": ["大阪府民じゃないんだけど。これでも見といて", "https://tenki.jp/forecast/6/30/"],
+	"大阪,天気": ["大阪府民じゃないんだけど。これでも見てて", "https://tenki.jp/forecast/6/33/6510/30201/10days.html"]
 };
     
 
@@ -102,7 +102,7 @@ asr.onresult = function(event){
 			textbox_element.appendChild(new_reply);
 			// 再生が終了（end）ときのイベントハンドラ（終了したときに実行される）
 			tts.onend = function(event){
-				if(typeof webpage != 'undefined'){
+				if(typeof webpage != 'undefined'&& webpage!="undefined"){
 					location.href = webpage; // ページを移動
 				}   
 				asr.start(); // 音声認識を再開 
