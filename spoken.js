@@ -1,4 +1,7 @@
-//追加した機能：部分一致で判別できる、時刻を答える、二度目だと返答が変わる
+const URL = "https://jlp.yahooapis.jp/NLUService/V2/analyze?appid="; // APIのリクエストURL
+const APPID = "dj00aiZpPUhFdWJ2ZlhaclVPYSZzPWNvbnN1bWVyc2VjcmV0Jng9ODc-"; // あなたのアプリケーションID
+const queryURL = URL + APPID;
+
 let date = new Date();
 
 var response = {
@@ -47,6 +50,7 @@ let output = ''; // 出力
 // 認識結果が出力されたときのイベントハンドラ
 asr.onresult = function(event){
     let transcript = event.results[event.resultIndex][0].transcript; // 結果文字列
+	
 	tts.text = transcript;
 	let newText = tts.text.replace(/\r?\n/g,'').replace(/\0/g,''); 
 	let textbox_element = document.getElementById('resultOutput');
@@ -63,57 +67,87 @@ asr.onresult = function(event){
 	    let transcript = event.results[event.resultIndex][0].transcript; // 結果文字列
 
 		let output_not_final = '';
-		if (event.results[event.resultIndex].isFinal) { // 結果が確定（Final）のとき
-			asr.abort(); // 音声認識を停止
-			let ret = response[transcript];
 
-			let answer;
-			let webpage;
-			
-			if(typeof ret == 'undefined'){
-				answer = "ごめん、なんて？";
-			}else{
-				answer = ret[0];
-				webpage = ret[1];
-			}
-
-			let keys = Object.keys(response);
-			keys.forEach(function(key) {
-				let flag = true;
-				key.split(',').forEach(function(word) {
-					let pattern = new RegExp(word);
-					let flag_test = pattern.test(transcript);
-					flag = flag && flag_test;
-				});
-				if(flag){
-					answerAll = response[key];
-					answer = answerAll[0]
-					webpage = answerAll[1]
-					console.log(key + " : " + answer);
-				}
-			});
+		let answer;
 		
-			output += transcript + ' => ' + answer + '<br>';
+		let keys = Object.keys(response);
+		keys.forEach(function(key) {
+			let flag = true;
+			console.log(transcript);
+			key.split(',').forEach(function(word) {              
+				let pattern = new RegExp(word);
+				let flag_test = pattern.test(transcript); // マッチしたらtrue, しなかったらfalse
+				flag = flag && flag_test; // 両方trueならtrue
+				console.log(pattern + '+' + ':' + flag_test);
+				//flag = flag && new RegExp(word).test(transcript);
+			});
+
+			if(flag){
+				let answerAll = response[key];
+				console.log(key + " : " + answer);
+				answer = answerAll[0]
+				let webpage = answerAll[1]
+				tts.text = answer;
+				tts.onend = function(event){
+					if(typeof webpage != 'undefined'&& webpage!="undefined"){
+						location.href = webpage; // ページを移動
+					}  
+				}
 				
-			tts.text = answer;
-			
-			new_reply.textContent = answer;
-			textbox_element.appendChild(new_you);
-			textbox_element.appendChild(new_reply);
-			// 再生が終了（end）ときのイベントハンドラ（終了したときに実行される）
-			tts.onend = function(event){
-				if(typeof webpage != 'undefined'&& webpage!="undefined"){
-					location.href = webpage; // ページを移動
-				}   
-				asr.start(); // 音声認識を再開 
+				speechSynthesis.speak(tts); // 再生
 			}
-			
-			speechSynthesis.speak(tts); // 再生
+		});
+		
+		if(typeof answer == 'undefined'){
+			// HTTPリクエストの準備
+			var postdata = {
+				"id": "1234-1", // JSON-RPC2.0 id、値は任意で、指定した値がレスポンスのidになる。
+				"jsonrpc" : "2.0", // APIで固定
+				"method" : "jlp.nluservice.analyze", // APIで固定
+				"params" : { "q" : transcript }, // 解析対象のテキスト 
+			};
+			var jsondata = JSON.stringify(postdata);
+		
+			const request = new XMLHttpRequest();
+			request.open('POST', queryURL, true);
+			request.setRequestHeader('Content-Type', 'application/json');
+			request.responseType = 'json'; // レスポンスはJSON形式に変換
+
+			// HTTPの状態が変化したときのイベントハンドラ
+			request.onreadystatechange = function() {
+				if (this.readyState == 4 && this.status == 200) {
+					// readyState == 4 操作完了
+					// status == 200 リクエスト成功（HTTPレスポンス）
+						
+					let res = this.response; // 結果はJSON形式
+
+					Object.keys(res.result).forEach(function (key) {
+						console.log(key + ": " + res.result[key])
+					});
 				
-			
-		} else { // 結果がまだ未確定のとき
-			output_not_final = '<span style="color:#ddd;">' + transcript + '</span>';
+					// METHOD が SAY のときのみ
+					if(res.result.METHOD == "SAY"){
+						answer = res.result.PARAM_TEXT_TTS || res.result.PARAM_TEXT;
+						new_reply.textContent = answer;
+						tts.text= answer;
+						speechSynthesis.speak(tts); // 再生
+					}
+				}
+			};
+			// HTTPリクエストの実行
+			request.send(jsondata);
 		}
+
+		new_reply.textContent = answer;
+		textbox_element.appendChild(new_you);
+		textbox_element.appendChild(new_reply);
+		
+		
+		// 再生が終了（end）ときのイベントハンドラ（終了したときに実行される）
+		
+				
+	} else { // 結果がまだ未確定のとき
+		output_not_final = '<span style="color:#ddd;">' + transcript + '</span>';
 	}
 }
 
@@ -125,4 +159,5 @@ startButton.addEventListener('click', function() {
 // 停止ボタンのイベントハンドラ
 stopButton.addEventListener('click', function() {
     asr.stop();
+	asr.abort();
 })
