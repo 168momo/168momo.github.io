@@ -5,20 +5,22 @@ const queryURL = URL + APPID;
 let date = new Date();
 
 var response = {
-    "誰":["誰だと思う？","undefined"],
-    "何歳":["失礼だなあ","undefined"],
-    "元気":["元気だよ","undefined"],
+    "誰":["ななしのパンダ、です","undefined"],
+    "何歳":["7歳です、パンダの1歳はヒトでいうと３歳らしい、です","undefined"],
 	"こんにちは":["こんにちは","undefined"],
 	"おはよう":["おはようー","undefined"],
-    "好き,食べ物":["駄菓子かな","undefined"],
-	"好き,飲み物":["水道水かな","undefined"],
-	"さようなら":["じゃあねー","undefined"],
-	"よろしく":["どうも","undefined"],
-	"初めまして":["はじめまして","undefined"],
-	"何時":[date.getHours() + "時"　+ date.getMinutes() + "分だよ","undefined"],
-	"何分":[date.getMinutes() + "分だよ","undefined"],
-	"和歌山,天気": ["これ見たらわかるでしょ", "https://tenki.jp/forecast/6/33/6510/30201/10days.html"],
-	"大阪,天気": ["大阪府民じゃないんだけど。これでも見てて", "https://tenki.jp/forecast/6/33/6510/30201/10days.html"]
+    "好き,食べ物":["ササよりタケノコがスキ、です","undefined"],
+	"好き,飲み物":["ミズです","undefined"],
+	"さようなら":["またお話しましょう、です","undefined"],
+	"よろしく":["よろしく、です","undefined"],
+	"初めまして":["はじめまして、です","undefined"],
+	"今,何時":[date.getHours() + "時"　+ date.getMinutes() + "分だと思う、です","undefined"],
+	"今,何分":[date.getMinutes() + "分だと思う、です","undefined"],
+	"パンダ":["呼びましたか？","undefined"],
+	"天気": ["すみません、答えられない、のでこれをみて", "https://tenki.jp/forecast/6/33/6510/30201/10days.html"],
+	"パンダ,日本":["ウエノドウブツエンとアドベンチャーワールドに４ヒキずついます、コウベはサイキンいなくなってしまいました、かなしい…","undefined"],
+	"アドベンチャーワールド": ["わかやまにあります、しょうかいページあるからみてください","https://www.aws-s.com/animals/panda/"],
+	"上野": ["アドベンチャーワールドのほうがすきです、おうえんしてください、でもしかたないのでウエノのサイトをおしえます","https://www.ueno-panda.jp/"]
 };
     
 
@@ -32,7 +34,7 @@ if (!'SpeechSynthesisUtterance' in window) {
 const tts = new SpeechSynthesisUtterance(); // TTSインスタンスを生成
 //tts.text = textForm.value; // テキストを設定
 tts.lang = "ja-JP"; // 言語(日本語)、英語の場合はen-US
-tts.rate = 2.0; // 速度
+tts.rate = 1.4; // 速度
 tts.pitch = 1.3; // 声の高さ
 tts.volume = 1.0; // 音量
 
@@ -127,7 +129,12 @@ asr.onresult = function(event){
 				
 					// METHOD が SAY のときのみ
 					if(res.result.METHOD == "SAY"){
-						answer = res.result.PARAM_TEXT_TTS || res.result.PARAM_TEXT;
+						answer = res.result.PARAM_TEXT_TTS || res.result.PARAM_TEXT　+ "・・・それよりパンダのことをきいてほしい、です";
+						new_reply.textContent = answer;
+						tts.text= answer;
+						speechSynthesis.speak(tts); // 再生
+					}else{
+						answer = "ごめんなさい、ヒトのコトバ難しくて・・・";
 						new_reply.textContent = answer;
 						tts.text= answer;
 						speechSynthesis.speak(tts); // 再生
